@@ -21,7 +21,7 @@ class Broadstreet_Config
         # Set config values below
         
         $config['zone_cache_ttl_seconds']    = 60*15; // 15 minutes
-        $config['network_cache_ttl_seconds'] = 60*60; // 1  hours
+        $config['network_cache_ttl_seconds'] = 60*30; // 30 minutes
 
         $config['log'] = array (
 
@@ -140,4 +140,4 @@ class Broadstreet_Config
     }
 }
 
-define('BROADSTREET_VERSION', '1.2.0');
+define('BROADSTREET_VERSION', '1.2.1');
