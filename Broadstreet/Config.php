@@ -26,7 +26,7 @@ class Broadstreet_Config
         $config['log'] = array (
 
             'level'     => Broadstreet_Log::ERROR,
-            'directory' => '/tmp/Broadstreet/'
+            'directory' => dirname(__FILE__) . '/Logs'
 
         );
 
@@ -140,4 +140,4 @@ class Broadstreet_Config
     }
 }
 
-define('BROADSTREET_VERSION', '1.3.2');
+define('BROADSTREET_VERSION', '1.3.3');

@@ -119,12 +119,17 @@
             <a class="nodec" target="_blank" href="<?php echo $meta['bs_yelp'] ?>"><img src="<?php echo Broadstreet_Utility::getImageBaseURL().'yelp.png' ?>" alt="Yelp" width="20" /></a>
             <?php endif; ?>
         <?php endif; ?>
-    
+
 </div>
 <div id="biz-column-2" class="boxed-sizing">
     <?php echo $content; ?>
+    
+<?php if($meta['bs_video']): ?>
+<div class="bs-video">Video</div>
+<div class="bs-videoWrapper">
+    <?php echo Broadstreet_Utility::setVideoWidth($meta['bs_video'], 350); ?>
+</div>
+<?php endif; ?>
 </div>
 
-<div class="bs-video">Video</div>
-<?php echo Broadstreet_Utility::setVideoWidth($meta['bs_video'], 350); ?>
 <div class="clearfix"></div>
