@@ -24,7 +24,7 @@ class Broadstreet_Mini_Utility
      */
     public static function getContainingFolder()
     {   
-        if(!preg_match('#wp-content/plugins/([^/])#', __FILE__, $matches))
+        if(!preg_match('#wp-content/plugins/([^/]+)#', __FILE__, $matches))
             return BROADSTRET_PARTNER_PLUGIN;
         else
             return $matches[1];
