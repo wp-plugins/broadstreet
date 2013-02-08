@@ -145,6 +145,7 @@ class Broadstreet_Core
         add_action('wp_ajax_save_settings', array('Broadstreet_Ajax', 'saveSettings'));
         add_action('wp_ajax_create_advertiser', array('Broadstreet_Ajax', 'createAdvertiser'));
         add_action('wp_ajax_import_facebook', array('Broadstreet_Ajax', 'importFacebook'));
+        add_action('wp_ajax_register', array('Broadstreet_Ajax', 'register'));
     }
         
     /**
@@ -266,6 +267,7 @@ class Broadstreet_Core
         add_submenu_page('Broadstreet', 'Settings', 'Account Setup', 'edit_pages', 'Broadstreet', array($this, 'adminMenuCallback'));
         #add_submenu_page('Broadstreet', 'Advanced', 'Advanced', 'edit_pages', 'Broadstreet-Layout', array($this, 'adminMenuLayoutCallback'));
         add_submenu_page('Broadstreet', 'Help', 'How To Get Started', 'edit_pages', 'Broadstreet-Help', array($this, 'adminMenuHelpCallback'));
+        add_submenu_page('Broadstreet', 'Editable Ads', 'Editable Ads&trade;', 'edit_pages', 'Broadstreet-Editable', array($this, 'adminMenuEditableCallback'));
     }
 
     /**
@@ -277,8 +279,8 @@ class Broadstreet_Core
         {
             $info = Broadstreet_Utility::getNetwork();
 
-            if(!$info || !$info->cc_on_file)
-                echo '<div class="updated"><p>You\'re <strong>almost ready</strong> to start using Broadstreet! Check the <a href="admin.php?page=Broadstreet">plugin page</a> to take care of the last steps. When that\'s done, this message will clear shortly after.</p></div>';
+            //if(!$info || !$info->cc_on_file)
+            //    echo '<div class="updated"><p>You\'re <strong>almost ready</strong> to start using Broadstreet! Check the <a href="admin.php?page=Broadstreet">plugin page</a> to take care of the last steps. When that\'s done, this message will clear shortly after.</p></div>';
         }
     }
 
@@ -304,6 +306,13 @@ class Broadstreet_Core
             wp_enqueue_style ('Broadstreet-vendorcss-time', Broadstreet_Utility::getVendorBaseURL() . 'timepicker/css/timePicker.css');
             wp_enqueue_script('Broadstreet-main'  ,  Broadstreet_Utility::getJSBaseURL().'broadstreet.js?v='. BROADSTREET_VERSION);
             wp_enqueue_script('Broadstreet-vendorjs-time'  ,  Broadstreet_Utility::getVendorBaseURL().'timepicker/js/jquery.timePicker.min.js');
+        }
+        
+        # Include thickbox on widgets page
+        if($GLOBALS['pagenow'] == 'widgets.php')
+        {
+            wp_enqueue_script('thickbox');
+            wp_enqueue_style( 'thickbox' );
         }
     }
 
@@ -346,7 +355,7 @@ class Broadstreet_Core
         
         if(!$data['api_key']) 
         {
-            $data['errors'][] = '<strong>You dont have an API key set yet!</strong><ol><li>If you already have a Broadstreet adserving account, <a href="http://my.broadstreetads.com/access-token">get your key here</a>.</li><li>If you don\'t have an account with us, <a target="blank" href="http://my.broadstreetads.com/register">sign up here</a>, create a network for this site, then <a href="http://my.broadstreetads.com/access-token">get your key here</a>.</li></ol>';
+            $data['errors'][] = '<strong>You dont have an API key set yet!</strong><ol><li>If you already have a Broadstreet account, <a href="http://my.broadstreetads.com/access-token">get your key here</a>.</li><li>If you don\'t have an account with us, <a target="blank" id="one-click-signup" href="#">then use our one-click signup</a>.</li></ol>';
         } 
         else 
         {
@@ -359,7 +368,7 @@ class Broadstreet_Core
                 $data['network']   = Broadstreet_Utility::getNetwork(true);
                 
                 if(!$data['network']->cc_on_file)
-                    $data['errors'][] = 'Your account does not have a credit card on file for your selected network below. The premium "Magic Import" and "Updateable Message" features, <strong>although entirely optional</strong>, will not work until <a target="_blank" href="http://my.broadstreetads.com/networks/'. $data['network_id'] .'/accounts">you add a card here</a>. Your information is confidential, secure, and <em>never</em> shared.';
+                    $data['errors'][] = 'Your account does not have a credit card on file for your selected network below. The premium "Magic Import" and "Updateable Message" features, <strong>although entirely optional</strong>, will not work until <a target="_blank" href="'.Broadstreet_Utility::broadstreetLink('/networks/'. $data['network']->id .'/accounts').'">you add a card here</a>. Your information is confidential, secure, and <em>never</em> shared.';
             }
             catch(Exception $ex)
             {
@@ -370,6 +379,12 @@ class Broadstreet_Core
 
         Broadstreet_View::load('admin/admin', $data);
     }
+    
+    public function adminMenuEditableCallback()
+    {
+        Broadstreet_View::load('admin/editable');
+    }
+    
     
     public function adminMenuHelpCallback()
     {
@@ -581,6 +596,7 @@ class Broadstreet_Core
         register_widget('Broadstreet_Business_Listing_Widget');
         register_widget('Broadstreet_Business_Profile_Widget');
         register_widget('Broadstreet_Business_Categories_Widget');
+        register_widget('Broadstreet_Editable_Widget');
     }
 
     /**
