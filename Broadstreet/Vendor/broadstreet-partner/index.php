@@ -6,11 +6,13 @@
 if (!isset( $_GET['inline']))
 	define('IFRAME_REQUEST', true);
 
-$script        = $_SERVER['SCRIPT_NAME'];
-$document_root = rtrim($_SERVER['DOCUMENT_ROOT'], '/');
-$wp_root       = rtrim(substr($script, 0, strpos($script, 'wp-content') - 1), '/');
+# Find the wp-admin directory
+if(!preg_match('#(.*)/wp-content/plugins/#', $_SERVER['SCRIPT_FILENAME'], $matches))
+    exit("We're awfully sorry. You have a strange server configuration we can't figure out. Email us, and we'll help figure it out. errors@broadstreetads.com");
 
-chdir("$document_root/{$wp_root}wp-admin");
+$root = $matches[1];
+
+chdir("$root/wp-admin");
 
 /** Load WordPress Administration Bootstrap **/
 require_once('./admin.php');
