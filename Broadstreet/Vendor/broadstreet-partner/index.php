@@ -386,6 +386,7 @@ class Broadstreet_Mini
             # Make sure we got an image
             if(!strstr($result['type'], 'gif') 
                 && !strstr($result['type'], 'jpeg')
+                && !strstr($result['type'], 'plain') # Hack because PHP stinks
                 && !strstr($result['type'], 'png'))
             {
                 self::_load('upload', array('error' => "That didn't look like an image that was uploaded. We support jpeg, png, gif."));
