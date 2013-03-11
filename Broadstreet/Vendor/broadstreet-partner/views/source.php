@@ -46,7 +46,7 @@
             </div>
             <div class="control"">
                 <strong>Click Destination (URL)</strong><br/>
-                <input title="Where does the user go after they click the ad?" type="text" name="destination" value="<?php echo Broadstreet_Mini_Utility::arrayGet($data, 'ad_destination', get_bloginfo('url')) ?>" /><br />
+                <input title="Where does the user go after they click the ad?" type="text" name="destination" value="<?php echo Broadstreet_Mini_Utility::arrayGet($data, 'ad_destination', bs_get_website()) ?>" /><br />
             </div>
         </form>
     </div>

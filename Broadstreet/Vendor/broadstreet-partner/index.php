@@ -3,50 +3,48 @@
  * We need to do a little handywork to make sure that Wordpress
  * thinks we're a standard built-in modal. 
  */
-if (!isset( $_GET['inline']))
-	define('IFRAME_REQUEST', true);
 
-# Find the wp-admin directory
-if(!preg_match('#(.*)/wp-content/plugins/#', $_SERVER['SCRIPT_FILENAME'], $matches))
-    exit("We're awfully sorry. You have a strange server configuration we can't figure out. Email us, and we'll help figure it out. errors@broadstreetads.com");
+# Include this so Wordpress doesn't throw NOTICEs when setting $pagenow
+$_SERVER['PHP_SELF'] = '/wp-admin';
 
-$root = $matches[1];
+# Include Config
+if(file_exists(dirname(__FILE__) . '/partner.php'))
+    require_once 'partner.php';
 
-chdir("$root/wp-admin");
+# Check that config constants are available
+if(!defined('BROADSTREET_PARTNER_NAME'))
+    exit('No partner file was included! Check the Broadstreet partner documentation.');
 
-/** Load WordPress Administration Bootstrap **/
-require_once('./admin.php');
-
-# Check permissions
-if (!current_user_can('upload_files'))
-	wp_die(__('You do not have permission to do this.'));
-
-# Include libraries
-require_once 'partner.php';
-require_once 'lib/Utility.php';
-require_once 'lib/Broadstreet.php';
-
-if(BROADSTREET_DEBUG)
-{
+# Turn on DEBUG if needed
+if(BROADSTREET_DEBUG) {
     error_reporting(E_ALL);
     ini_set('display_errors', 1);
+    ini_set('log_errors', 1);    
 }
+
+# Include libraries
+require_once 'lib/Utility.php';
+require_once 'lib/Broadstreet.php';
+require_once 'lib/helpers/'.BROADSTREET_PARTNER_TYPE.'.php';
+
+bs_setup();
 
 class Broadstreet_Mini
 {
     CONST KEY_API_KEY       = 'Broadstreet_API_Key';
     CONST KEY_NETWORK_ID    = 'Broadstreet_Network_Key';
+    CONST KEY_AD_LIST       = 'Broadstreet_Ad_List';
     
     public static function execute()
     {
         # Check permissions again
-        if(!is_admin()) wp_die('Denied');
+        bs_check_perms();
         
         $action = $_GET['action'];
         
         # Don't allow access to protected/utillity methods
         if($action[0] == '_')
-            wp_die('Denied');
+            die('Denied');
         
         # Make sure the requested function is available
         if(is_callable(array('self', $action)))
@@ -67,8 +65,31 @@ class Broadstreet_Mini
             $next = Broadstreet_Mini_Utility::getBaseURL("index.php?action=design&id=$id");
             header("Location: $next");
         }
-                
+
         self::_load('index', array('has_free' => Broadstreet_Mini_Utility::hasFreeAds()));
+    }
+    
+    /**
+     * Show the user the final code 
+     */
+    public static function code()
+    {
+        $id   = $_GET['id'];
+        $data = Broadstreet_Mini_Utility::getOption($id);
+
+        self::_load('code', array('data' => $data));
+    }
+    
+    /**
+     * Show the user the final code 
+     */
+    public static function list_ads()
+    {
+        //session_destroy();
+        $data       = Broadstreet_Mini_Utility::getTrackedAds();
+        $logged_in  = (bool)Broadstreet_Mini_Utility::getOption(self::KEY_NETWORK_ID);
+        
+        self::_load('list', array('ads' => $data, 'logged_in' => $logged_in));
     }
     
     /**
@@ -182,10 +203,17 @@ class Broadstreet_Mini
                         $data['bs_id']              = $ad->id;
                         $data['bs_advertiser_id']   = $advertiser_id;
                         $data['bs_network_id']      = $network_id;
+                        $data['bs_advertiser_name'] = ($advertiser_name ? stripslashes($advertiser_name) : 'Existing Advertiser');
+                        $data['ad_created']         = time();
                     }
+                    
+                    $data['ad_modified'] = time();
                     
                     # Save
                     Broadstreet_Mini_Utility::setOption($id, $data);
+                    Broadstreet_Mini_Utility::trackAd($data);
+                    
+                    # Keep track of which ads were created
 
                     $done = true;
                 }
@@ -194,6 +222,14 @@ class Broadstreet_Mini
                     $error = "There was an error creating your ad: " . Broadstreet_Mini_Utility::getPrettyError($ex);
                     if(BROADSTREET_DEBUG) $error .= ' ' . $ex->__toString();
                     Broadstreet_Mini_Utility::sendReport("Network: $network_id\n\n" . $ex->__toString() . "\n\n" . print_r($params, true));
+                }
+                
+                # If the config says to show the code on the last step, do that
+                if(!$error && BROADSTREET_SHOW_CODE)
+                {
+                    $next = Broadstreet_Mini_Utility::getBaseURL("index.php?action=code&id=$id");
+                    header("Location: $next");
+                    return;
                 }
             }
         }
@@ -206,7 +242,9 @@ class Broadstreet_Mini
      */
     public static function register()
     {
-        $id   = $_GET['id'];
+        $id    = @$_GET['id'];
+        $after = @$_POST['next'];
+        
         $data = Broadstreet_Mini_Utility::getOption($id);
         $api  = new Broadstreet();
         $error= null;
@@ -220,7 +258,7 @@ class Broadstreet_Mini
                     # At this point, the user should already be logged in from an AJAX request
                     $network_id   = $_POST['network_id'];
                     $network_name = $_POST['network_name'];
-                    $network_name = $network_name ? $network_name : get_bloginfo('name');
+                    $network_name = $network_name ? $network_name : bs_get_website_name();
                     
                     # Hook up an existing network or create a new one
                     if($network_id)
@@ -233,11 +271,6 @@ class Broadstreet_Mini
                         $resp = $api->createNetwork($network_name);
                         Broadstreet_Mini_Utility::setOption(self::KEY_NETWORK_ID, $resp->id);
                     }
-                    
-                    # Go to the finalize page
-                    $next = Broadstreet_Mini_Utility::getBaseURL("index.php?action=finalize&id=$id");
-                    header("Location: $next");
-                    return;
                 }
                 catch(Exception $ex)
                 {
@@ -254,19 +287,31 @@ class Broadstreet_Mini
                     Broadstreet_Mini_Utility::setOption(self::KEY_API_KEY, $resp->access_token);
                     
                     # Create a network for the new user
-                    $resp = $api->createNetwork(get_bloginfo('name'));
+                    $resp = $api->createNetwork('New Network ' . date('Y/m/d'));
                     Broadstreet_Mini_Utility::setOption(self::KEY_NETWORK_ID, $resp->id);
-                    
-                    # Go to the 'finalize' page
-                    $next = Broadstreet_Mini_Utility::getBaseURL("index.php?action=finalize&id=$id");
-                    header("Location: $next"); 
-                    return;
                 }
                 catch(Exception $ex)
                 {
                     $error = "There was an error. Do you already have an account with us? Try logging in.";
                 }
             }
+            
+            if(!$error)
+            {
+                # Go to the finalize page
+                if(!$after)
+                    $next = Broadstreet_Mini_Utility::getBaseURL("index.php?action=finalize&id=$id");
+                else
+                    $next = Broadstreet_Mini_Utility::getBaseURL("index.php?action=$after");
+                
+                header("Location: $next");
+                return;
+            }
+        }
+        
+        if(!$error)
+        {
+            Broadstreet_Mini_Utility::runHook('bs_login_register_after');
         }
         
         self::_load('register', array('data' => $data, 'error' => $error));
@@ -321,16 +366,22 @@ class Broadstreet_Mini
     {
         if($_SERVER['REQUEST_METHOD'] == 'POST')
         {
-            if(!isset($_FILES['file']) || $_FILES['file']['size'] == 0) 
+            if(!@$_POST['use_sample'] && (!isset($_FILES['file']) || $_FILES['file']['size'] == 0)) 
             {
                 self::_load('upload', array('error' => "You didn't upload any files. Try again!"));
                 return;
             }
             
-            $uploadedfile     = $_FILES['file'];
-            $upload_overrides = array('test_form' => false);
-            
-            $result = wp_handle_upload($uploadedfile, $upload_overrides);
+            if(!@$_POST['use_sample'])
+            {
+                $uploadedfile     = $_FILES['file'];
+                $upload_overrides = array('test_form' => false);
+                $result = bs_handle_upload($uploadedfile, $upload_overrides);
+            }
+            else
+            {
+                $result = bs_get_sample();
+            }
             
             # Make sure we got an image
             if(!strstr($result['type'], 'gif') 
@@ -340,7 +391,7 @@ class Broadstreet_Mini
                 self::_load('upload', array('error' => "That didn't look like an image that was uploaded. We support jpeg, png, gif."));
                 return;
             }
-            
+
             if(isset($result['error']))
             {
                 self::_load('upload', $result);

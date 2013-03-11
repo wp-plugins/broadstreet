@@ -58,7 +58,6 @@ class Broadstreet_Zone_Widget extends WP_Widget
       */
      function form($instance) 
      {
-
         $defaults = array('w_title' => 'Broadstreet Ad Zones', 'w_info_string' => '', 'w_opener' => '', 'w_closer' => '');
 		$instance = wp_parse_args((array) $instance, $defaults);
         
@@ -117,17 +116,17 @@ class Broadstreet_SBSZone_Widget extends WP_Widget
          {
             echo <<<ZONE
             $before_widget
-            <table border="0" width="100%">
+            <table border="0" width="100%" style="margin-bottom: 10px;">
                 <tr>
                     <td align="center">
                         {$zone_data[$zone_id_1]->html}
-                    <td>
+                    </td>
                     <td align="center">
                         {$zone_data[$zone_id_2]->html}
-                    <td>
+                    </td>
                 </tr>
             </table>
-            $before_widget
+            $after_widget
 ZONE;
          }
      }
@@ -223,7 +222,7 @@ class Broadstreet_Business_Listing_Widget extends WP_Widget
             'post_type' => Broadstreet_Core::BIZ_POST_TYPE,
             'post_status' => 'publish',
             'posts_per_page' => ($is_random == 'no' ? intval($count) : 100),
-            'caller_get_posts'=> 1
+            'ignore_sticky_posts'=> 0
         );
         
         if($category != 'all')
@@ -384,7 +383,7 @@ class Broadstreet_Business_Profile_Widget extends WP_Widget
             'post_type' => Broadstreet_Core::BIZ_POST_TYPE,
             'post_status' => 'publish',
             'posts_per_page' => 1,
-            'caller_get_posts'=> 1
+            'ignore_sticky_posts'=> 1
         );
         
         if($business == 'random')
@@ -502,7 +501,7 @@ class Broadstreet_Business_Profile_Widget extends WP_Widget
             'post_type' => Broadstreet_Core::BIZ_POST_TYPE,
             'post_status' => 'publish',
             'posts_per_page' => -1,
-            'caller_get_posts'=> 1,
+            'ignore_sticky_posts'=> 1,
             'orderby' => 'title',
             'order' => 'ASC'
         );
@@ -621,7 +620,7 @@ class Broadstreet_Business_Categories_Widget extends WP_Widget
      function form($instance) 
      {
 
-        $defaults = array('w_title' => 'Business Categories', 'w_business' => 'random', 'w_category' => 'any');
+        $defaults = array('w_title' => 'Business Categories', 'w_business' => 'random', 'w_category' => 'any', 'w_show_counts' => 'yes');
 		$instance = wp_parse_args((array) $instance, $defaults);
        ?>
         <div class="widget-content">
@@ -670,8 +669,11 @@ class Broadstreet_Editable_Widget extends WP_Widget
         if($title)
             echo $before_title . $title. $after_title;
         
+        echo "<style>div.bs-ad img {width: 100% !important; height: auto !important;} </style>";
+        echo "<div class='bs-ad'>";
         echo $html;
-
+        echo "</div>";
+        
         echo $after_widget;
      }
 
@@ -717,7 +719,9 @@ class Broadstreet_Editable_Widget extends WP_Widget
         
        ?>
 <style type="text/css">
-    div.bs-proof img { width: 100% !important; }
+    div.bs-proof img { width: 100% !important; height: auto !important; }
+    div.bs-proof { overflow: hidden !important; }
+    
 </style>
         <div class="widget-content">
         <p>
