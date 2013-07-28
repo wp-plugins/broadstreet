@@ -153,7 +153,7 @@ p {
     font-weight: bold;
 }
 
-a.btn {
+.btn {
     font-family: HelveticaNeue-Light, 'Helvetica Neue Light', 'Helvetica Neue', sans-serif;
     text-decoration: none;
     line-height: inherit;
@@ -195,11 +195,11 @@ a.btn {
 }
 
 
-a.btn.smaller {
+.btn.smaller {
     padding: 4px 12px;
 }
 
-a.call-to-action {
+.call-to-action {
     color: white;
     border-radius: 6px;
     background-color: #57A957;

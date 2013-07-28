@@ -6,7 +6,7 @@ require_once dirname(__FILE__) . '/../partner.php';
 require_once dirname(__FILE__) . '/helpers/'.BROADSTREET_PARTNER_TYPE.'.php';
 
 class Broadstreet_Mini_Utility
-{
+{    
     /**
      * Get the base URL of the Broadstreet Mini vendor plugin
      * @param string $append A path to append to the base url
