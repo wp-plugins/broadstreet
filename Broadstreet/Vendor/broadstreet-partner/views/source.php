@@ -35,13 +35,13 @@
                     <strong>Facebook Page URL</strong><br/>
                     <input type="text" name="facebook" value="<?php echo Broadstreet_Mini_Utility::arrayGet($data, 'ad_facebook') ?>" placeholder="http://facebook.com/broadstreetads" /><br/>
                     <strong>Hashtag</strong><br/>
-                    <input type="text" name="hashtag" value="<?php echo Broadstreet_Mini_Utility::arrayGet($data, 'ad_hashtag', '#broadstreet') ?>" />
+                    <input type="text" name="facebook_hashtag" value="<?php echo Broadstreet_Mini_Utility::arrayGet($data, 'ad_hashtag', '#broadstreet') ?>" />
                 </div>
                 <div class="control" id="source_twitter_detail">
                     <strong>Twitter Username</strong><br/>
                     <input type="text" name="twitter" value="<?php echo Broadstreet_Mini_Utility::arrayGet($data, 'ad_twitter') ?>" placeholder="broadstreetads" /><br />
                     <strong>Hashtag</strong><br/>
-                    <input type="text" name="hashtag" value="<?php echo Broadstreet_Mini_Utility::arrayGet($data, 'ad_hashtag', '#broadstreet') ?>" />
+                    <input type="text" name="twitter_hashtag" value="<?php echo Broadstreet_Mini_Utility::arrayGet($data, 'ad_hashtag', '#broadstreet') ?>" />
                 </div>
             </div>
             <div class="control"">

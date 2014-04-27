@@ -532,7 +532,7 @@ class Broadstreet_Mini
             {
                 $data['ad_source']   = 'facebook';
                 $data['ad_facebook'] = $_POST['facebook'];
-                $data['ad_hashtag']  = $_POST['hashtag'];
+                $data['ad_hashtag']  = $_POST['facebook_hashtag'];
                 
                 if(!$_POST['facebook'])
                     $data['error'] = "You need to enter the URL of the advertiser's Facebook page";
@@ -542,7 +542,7 @@ class Broadstreet_Mini
             {
                 $data['ad_source']  = 'twitter';
                 $data['ad_twitter'] = ltrim($_POST['twitter'], '@');
-                $data['ad_hashtag'] = $_POST['hashtag'];
+                $data['ad_hashtag'] = $_POST['twitter_hashtag'];
                 
                 if(!$_POST['twitter'])
                     $data['error'] = 'You need to enter a Twitter username';
