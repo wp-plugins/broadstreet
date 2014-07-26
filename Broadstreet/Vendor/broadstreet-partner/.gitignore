@@ -1,0 +1,4 @@
+.DS_Store
+partner.php
+tmp/*
+!tmp/index.php
