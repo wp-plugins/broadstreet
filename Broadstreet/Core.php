@@ -254,7 +254,11 @@ class Broadstreet_Core
         # Add Broadstreet ad zone CDN
         if(!is_admin()) 
         {
-            wp_enqueue_script('Broadstreet-cdn', 'http://cdn.broadstreetads.com/init.js');
+            if(is_ssl()) {
+                wp_enqueue_script('Broadstreet-cdn', 'https://s3.amazonaws.com/street-production/init.js');
+            } else {
+                wp_enqueue_script('Broadstreet-cdn', 'http://cdn.broadstreetads.com/init.js');
+            }
         }
     }
     
@@ -620,8 +624,8 @@ class Broadstreet_Core
         }
         else 
         {
-            # Special thanks to Justin
-            return get_the_excerpt();
+            $post = get_post();
+            return $post->post_excerpt;
         }
 
 
